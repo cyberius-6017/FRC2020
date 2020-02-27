@@ -1,0 +1,11 @@
+[
+  {
+    "name": "RobotCode_v1.0 (in project RobotCode_v1.0)",
+    "file": "C:\\Users\\teamc\\OneDrive\\Documentos\\RobotCode_v1.0\\build\\libs\\RobotCode_v1.0.jar",
+    "extensions": [
+      "C:\\Users\\teamc\\OneDrive\\Documentos\\RobotCode_v1.0\\build\\tmp\\expandedArchives\\halsim_gui-2020.1.2-windowsx86-64.zip_0ded91afab576f356c80ba4c4e7b8310\\windows\\x86-64\\shared\\halsim_gui.dll"
+    ],
+    "librarydir": "C:\\Users\\teamc\\OneDrive\\Documentos\\RobotCode_v1.0\\build\\tmp\\jniExtractDir",
+    "mainclass": "frc.robot.Main"
+  }
+]
