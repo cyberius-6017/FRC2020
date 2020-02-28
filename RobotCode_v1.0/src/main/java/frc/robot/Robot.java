@@ -32,7 +32,7 @@ import edu.wpi.first.vision.VisionThread;
 import edu.wpi.first.wpilibj.SerialPort;
 
 //The Gyroscope Imports
-import com.analog.adis16448.frc.ADIS16448_IMU;
+//import com.analog.adis16448.frc.ADIS16448_IMU;
 
 //Other
 import org.opencv.core.Rect;
@@ -104,21 +104,18 @@ public class Robot extends TimedRobot {
   private final VictorSP swerveMotor2 = new VictorSP(9);
   // private SpeedControllerGroup frontMotors = new SpeedControllerGroup(frontMotor1, frontMotor2);
 
-  private final SpeedController liftMotor1 = new CANSparkMax(6, MotorType.kBrushless);
-  private final SpeedController liftMotor2 = new CANSparkMax(5, MotorType.kBrushless);
-  private SpeedControllerGroup liftMotors = new SpeedControllerGroup(liftMotor1, liftMotor2);
+  private final VictorSPX liftMotor1 = new VictorSPX(5);
+  private final VictorSPX liftMotor2 = new VictorSPX(6);
+  //private SpeedControllerGroup liftMotors = new SpeedControllerGroup(liftMotor1, liftMotor2);
   private final SpeedController shootMotor1 = new CANSparkMax(10, MotorType.kBrushless);
   private final SpeedController shootMotor2 = new CANSparkMax(11, MotorType.kBrushless);
   private SpeedControllerGroup shootMotors = new SpeedControllerGroup(shootMotor1, shootMotor2);
 
-  private final SpeedController winch = new CANSparkMax(7, MotorType.kBrushless);
-  private SpeedControllerGroup winchMotor = new SpeedControllerGroup(winch);
+  //private final SpeedController winch = new CANSparkMax(7, MotorType.kBrushless);
+  //private SpeedControllerGroup winchMotor = new SpeedControllerGroup(winch);
   //-private final SpeedController piston = new CANSparkMax(11, MotorType.kBrushless);
 
-
   // movement by .set(speed)
-  // 2 neo shooter
-  // redline intake
 
   // 2 Joysticks for TankDrive
   private final Joystick leftJoystick = new Joystick(0);
@@ -132,7 +129,7 @@ public class Robot extends TimedRobot {
    * 361 degrees getRate() method to obtain the current rotation rate being
    * measured getGyroInstantX is for the X getGyroInstantY is for the Y
    */
-  public static final ADIS16448_IMU imu = new ADIS16448_IMU();
+  //public static final ADIS16448_IMU imu = new ADIS16448_IMU();
 
   // Bot Information. The X and Y are for the grid system. the botAngle is for
   // orientation. 0-360 where 90 is the right, and 270 is left
@@ -153,6 +150,9 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     arduino = new SerialPort(9600, SerialPort.Port.kUSB1);
+    shootMotor1.setInverted(true);
+    swerveMotor1.setInverted(true);
+    swerveMotor2.setInverted(true);
   }
 
   /**
@@ -194,9 +194,17 @@ public class Robot extends TimedRobot {
      * Step1: side step to shoot
      */
     if (initial) {
-      findShortcut(30, 0);
-      findShortcut(30, 300);
-      findShortcut(0, 300);
+      //findShortcut(30, 0);
+      //findShortcut(30, 300);
+      //findShortcut(0, 300);
+
+      forwardsTime(1.5,.3);
+      stopMotors();
+      leftTime(3.4,.3);
+      stopMotors();
+      backwardsTime(1.5,.3);
+      stopMotors();
+
       try {
         shootAutonomous();
       } catch (InterruptedException e) {
@@ -221,11 +229,16 @@ public class Robot extends TimedRobot {
           frontLeftMotor.set(ControlMode.PercentOutput,-1*-0.3);
           backRightMotor.set(ControlMode.PercentOutput,0.3);
           frontRightMotor.set(ControlMode.PercentOutput,0.3);
+          break;
         case "Right":
           backLeftMotor.set(ControlMode.PercentOutput,-1*0.3);
           frontLeftMotor.set(ControlMode.PercentOutput,-1*0.3);
           backRightMotor.set(ControlMode.PercentOutput,-0.3);
           frontRightMotor.set(ControlMode.PercentOutput,-0.3);
+          break;
+        case "none":
+          stopMotors();
+          break;
       }
     }
     
@@ -241,7 +254,7 @@ public class Robot extends TimedRobot {
       frontRightMotor.set(ControlMode.PercentOutput,speed);
       // pause to avoid churning
       //Thread.sleep(1);
-      //calculateGridSwerve(speed, 0);
+      calculateGridSwerve(speed, 0);
     }
   }
   public void backwardsTime(double seconds, double speed){
@@ -251,7 +264,7 @@ public class Robot extends TimedRobot {
       frontLeftMotor.set(ControlMode.PercentOutput,-1*-speed);
       backRightMotor.set(ControlMode.PercentOutput,-speed);
       frontRightMotor.set(ControlMode.PercentOutput,-speed);
-      //calculateGridSwerve(-speed, 0);
+      calculateGridSwerve(-speed, 0);
     }
   }
   public void leftTime(double seconds, double speed){
@@ -259,7 +272,7 @@ public class Robot extends TimedRobot {
     while(System.currentTimeMillis() < endTime) {
       swerveMotor1.set(speed);
       swerveMotor2.set(speed);
-      //calculateGridSwerve(0, -speed);
+      calculateGridSwerve(0, -speed);
     }
   }
   public void rightTime(double seconds, double speed){
@@ -267,7 +280,7 @@ public class Robot extends TimedRobot {
     while(System.currentTimeMillis() < endTime) {
       swerveMotor1.set(-speed);
       swerveMotor2.set(-speed);
-      //calculateGridSwerve(0, speed);
+      calculateGridSwerve(0, speed);
     }
   }
 
@@ -276,24 +289,24 @@ public class Robot extends TimedRobot {
     frontLeftMotor.set(ControlMode.PercentOutput,-1*speed);
     backRightMotor.set(ControlMode.PercentOutput,speed);
     frontRightMotor.set(ControlMode.PercentOutput,speed);
-    //calculateGridSwerve(speed, 0);
+    calculateGridSwerve(speed, 0);
   }
   public void backwards(double speed){
     backLeftMotor.set(ControlMode.PercentOutput,-1*-speed);
     frontLeftMotor.set(ControlMode.PercentOutput,-1*-speed);
     backRightMotor.set(ControlMode.PercentOutput,-speed);
     frontRightMotor.set(ControlMode.PercentOutput,-speed);
-    //calculateGridSwerve(-speed, 0);
+    calculateGridSwerve(-speed, 0);
   }
   public void left(double speed){
     swerveMotor1.set(speed);
     swerveMotor2.set(speed);
-    //calculateGridSwerve(0, -speed);
+    calculateGridSwerve(0, -speed);
   }
   public void right(double speed){
     swerveMotor1.set(-speed);
     swerveMotor2.set(-speed);
-    //calculateGridSwerve(0, speed);
+    calculateGridSwerve(0, speed);
   }
 
 
@@ -321,10 +334,19 @@ public class Robot extends TimedRobot {
 
     movementOfWheels(isSwerve);
 
-    if (leftButton == 1){liftMotors.set(0.3);}
-    if (rightButton == 1){shootMotors.set(0.3);}
-    if (rightButton == 3){winch.set(0.3);}
-    if (rightButton == 2){winch.set(0.3);}
+    if (leftButton == 1){
+      liftMotor1.set(ControlMode.PercentOutput, 0.3);
+      liftMotor2.set(ControlMode.PercentOutput, 0.3); //intake
+    }
+    if (leftButton == 2){resetOrientation();}
+    if (leftButton == 3){findShortcut(0, 0);}
+    
+
+    if (rightButton == 1){shootMotors.set(0.8);}
+    //if (rightButton == 3){winch.set(0.3);}
+    if (rightButton == 4){centerBall();}
+    if (rightButton == 5){Half_Turn();}
+    
   }
 
   public int getRightJoystickButton() {
@@ -351,13 +373,19 @@ public class Robot extends TimedRobot {
         System.out.println("Button" + i + "R pressed");
         switch (i) {
           case (1):
-            System.out.println("Example of a Hold");
+            System.out.println("Example of a Hold1");
             return 1;
           case (2):
-            System.out.println("Example of a Hold");
+            System.out.println("Example of a Hold2");
             return 2;
           case (3):
-            System.out.println("Example of a Hold");
+            System.out.println("Example of a Hold3");
+            return 3;
+          case (4):
+            System.out.println("Example of a Hold4");
+            return 2;
+          case (5):
+            System.out.println("Example of a Hold5");
             return 3;
         }
       }
@@ -377,18 +405,47 @@ public class Robot extends TimedRobot {
         System.out.println("Button" + i + "R pressed");
         switch (i) {
           case (1):
-            System.out.println("Example of a Hold");
+            System.out.println("Example of a Hold6");
             return 1;
           case (2):
-            if (leftJoystick.getRawButtonPressed(2)) {
-              System.out.println("Example of a click");
-              return 2;
-            }
+            System.out.println("Example of a hold7");
+            return 2;
+          case (3):
+            System.out.println("Example of a hold8");
+            return 3;
+          case (4):
+            System.out.println("Example of a hold9");
+            return 4;
+          case (5):
+            System.out.println("Example of a hold");
+            return 5;
         }
       }
     }
     //if it reaches here, no button was pressed
     return 0;
+  }
+
+  public void centerBall(){
+    try {
+      ballLocation = ballLocations[Integer.parseInt(arduino.readString())];
+    } catch (Exception e) {
+      ballLocation = "none";
+    }
+    switch (ballLocation) {
+      case "Forward":
+        return;
+      case "Left":
+        backLeftMotor.set(ControlMode.PercentOutput,-1*-0.3);
+        frontLeftMotor.set(ControlMode.PercentOutput,-1*-0.3);
+        backRightMotor.set(ControlMode.PercentOutput,0.3);
+        frontRightMotor.set(ControlMode.PercentOutput,0.3);
+      case "Right":
+        backLeftMotor.set(ControlMode.PercentOutput,-1*0.3);
+        frontLeftMotor.set(ControlMode.PercentOutput,-1*0.3);
+        backRightMotor.set(ControlMode.PercentOutput,-0.3);
+        frontRightMotor.set(ControlMode.PercentOutput,-0.3);
+    }
   }
 
   /**
@@ -400,11 +457,11 @@ public class Robot extends TimedRobot {
 
   public void Half_Turn(){
      //it will loop until it reached 4% from angle 0
-     while (true){
+    while (true){
       double rotationSpeed = .5; //idk about best speed, Trial an Error sort of thing?
 
-      if (imu.getAngle() > 200 || imu.getAngle() < 160){ 
-      //if (botAngle > 1.3*Math.PI){ 
+      //if (imu.getAngle() > 200 || imu.getAngle() < 160){ 
+      if (botAngle > 1.3*Math.PI){ 
         //the weighted angle makes it move slower as it gets closer
         //leftMotors.set(rotationSpeed);
         //rightMotors.set(-rotationSpeed);
@@ -413,8 +470,8 @@ public class Robot extends TimedRobot {
         backRightMotor.set(ControlMode.PercentOutput,-rotationSpeed);
         frontRightMotor.set(ControlMode.PercentOutput,-rotationSpeed);
       } 
-      else if (imu.getAngle() > 185 || imu.getAngle() < 175){ 
-      //else if (botAngle > Math.PI*1.1){ 
+      //else if (imu.getAngle() > 185 || imu.getAngle() < 175){ 
+      else if (botAngle > Math.PI*1.1){ 
         //the weighted angle makes it move slower as it gets closer
         //leftMotors.set(rotationSpeed * .25);
         //rightMotors.set(-rotationSpeed * .25);
@@ -423,15 +480,10 @@ public class Robot extends TimedRobot {
         backRightMotor.set(ControlMode.PercentOutput,-rotationSpeed* .25);
         frontRightMotor.set(ControlMode.PercentOutput,-rotationSpeed* .25);
       } 
-      else if (imu.getAngle() > 181.5 || imu.getAngle() < 178.5){
-      //else if (botAngle > Math.PI*1.01){ 
-        //the weighted angle makes it move slower as it gets closer
-        //leftMotors.set(rotationSpeed * .1);
-        //rightMotors.set(-rotationSpeed * .1);
-        backLeftMotor.set(ControlMode.PercentOutput,rotationSpeed* .1);
-        frontLeftMotor.set(ControlMode.PercentOutput,rotationSpeed* .1);
-        backRightMotor.set(ControlMode.PercentOutput,-rotationSpeed* .1);
-        frontRightMotor.set(ControlMode.PercentOutput,-rotationSpeed* .1);
+      //else if (imu.getAngle() > 181.5 || imu.getAngle() < 178.5){
+      else if (botAngle > Math.PI*1.01){ 
+        stopMotors();
+        return;
       } //otherwise move counter clockwise
       else {
         backLeftMotor.set(ControlMode.PercentOutput,-rotationSpeed);
@@ -457,7 +509,7 @@ public class Robot extends TimedRobot {
       frontLeftMotor.set(ControlMode.PercentOutput,-1* speedLeft);
       backRightMotor.set(ControlMode.PercentOutput,speedRight);
       frontRightMotor.set(ControlMode.PercentOutput,speedRight);
-      //calculateGridNormal(speedLeft, speedRight);
+      calculateGridNormal(speedLeft, speedRight);
       // assuming no friction for front Motors: (change as moving) frontMotors();
     } else {
       //the right joystick is the one for swerve
@@ -477,14 +529,16 @@ public class Robot extends TimedRobot {
       //^ but would that be better found in the autonomous periodic Function?
       //TODO the back motors of Right and Left might need to have a slightly faster speed to compensate
       //for their Angle. this a T&E thing
-      //calculateGridSwerve(swerveSpeedY, swerveSpeedX);
+      calculateGridSwerve(swerveSpeedY, swerveSpeedX);
     }
   }
 
   //TODO change as speed needed
   public void shootContinous() {
-    liftMotors.set(10);
-    shootMotors.set(10);
+    //liftMotors.set(.8);
+    liftMotor1.set(ControlMode.PercentOutput, .8);
+    liftMotor2.set(ControlMode.PercentOutput, .8);
+    shootMotors.set(.8);
   }
 
   //TODO set speed and time as necessary
@@ -494,8 +548,10 @@ public class Robot extends TimedRobot {
     }
 
     //shoots at time for 3 balls
-    liftMotors.set(10);
-    shootMotors.set(10);
+    //liftMotors.set(.8);
+    liftMotor1.set(ControlMode.PercentOutput, .8);
+    liftMotor2.set(ControlMode.PercentOutput, .8);
+    shootMotors.set(.8);
     //shoot at 10 speed for 1 second (1000ms)
     try {
     Thread.sleep(1000);
@@ -507,12 +563,26 @@ public class Robot extends TimedRobot {
     stopLift();
   }
 
+  public void shootAutonomous2() throws InterruptedException {
+    shootMotors.set(.8);
+    Thread.sleep(200);
+    liftMotor1.set(ControlMode.PercentOutput, .8);
+    liftMotor2.set(ControlMode.PercentOutput, .8);
+
+    Thread.sleep(3000);
+    stopOther();
+  }
+
   public void moveBallsUp(){
-    liftMotors.set(0);
+    //liftMotors.set(0);
+    liftMotor1.set(ControlMode.PercentOutput, 0);
+    liftMotor2.set(ControlMode.PercentOutput, 0);
     try {
       Thread.sleep(200);
     } catch (InterruptedException e) {}
-    liftMotors.set(0);
+    //liftMotors.set(0);
+    liftMotor1.set(ControlMode.PercentOutput, .0);
+    liftMotor2.set(ControlMode.PercentOutput, .0);
     //TODO when bot picks up ball have it move balls then set last one to 1 manually
     ballPos[0] = ballPos[1];
     ballPos[1] = ballPos[2];
@@ -523,7 +593,9 @@ public class Robot extends TimedRobot {
   }
 
   public void stopLift() {
-    liftMotors.set(0);
+    //liftMotors.set(0);
+    liftMotor1.set(ControlMode.PercentOutput, .0);
+    liftMotor2.set(ControlMode.PercentOutput, .0);
   }
 
   //TODO change values as necessary
@@ -544,27 +616,27 @@ public class Robot extends TimedRobot {
   }
 
   public void MoveWinch() {
-    winchMotor.set(50);
+    //winchMotor.set(50);
   }
   public void StopWinch() {
-    winchMotor.set(0);
+    //winchMotor.set(0);
   }
 
   public void calculateGridNormal(double speedLeft, double speedRight) {
 
-  /* There is a True X,Y which is the grid
-        Y
-        |
-        |
-    ----------- X
-        |
-        |
-    
-    and an internal X,Y in which the reference frame is the bot iself
-    these will be called initial X and Y, they will then be translated into the true grid
-    NOTE: the initial X and Y are speed vectors, what this does is change the speed
-        into the translation of the bot in the true grid
-  */
+    /* There is a True X,Y which is the grid
+          Y
+          |
+          |
+      ----------- X
+          |
+          |
+      
+      and an internal X,Y in which the reference frame is the bot iself
+      these will be called initial X and Y, they will then be translated into the true grid
+      NOTE: the initial X and Y are speed vectors, what this does is change the speed
+          into the translation of the bot in the true grid
+    */
 
     double radius = 0.346; //the radius cause centripetal force, this was measured from Fer (in m. in cm is 34.6)
 
@@ -606,7 +678,7 @@ public class Robot extends TimedRobot {
     botX += initialX*Math.sin(botAngle); //forward is θ = 0. in which X wouldn't change
   }
 
-//this is a mode where botAngle stays a constant
+  //this is a mode where botAngle stays a constant
   public void calculateGridSwerve(double swerveSpeedY, double swerveSpeedX){
     //for this one, the Y would be exactly the same as normal, as the motors that
     //move it in the Y direction are not being changed
@@ -631,7 +703,7 @@ public class Robot extends TimedRobot {
     //which doesn't change calculations, but it makes it hard to visualize it moving
     botAngle = 0; 
     //remember this is the important: i just didnt want to break previously wrtten code
-    imu.reset();
+    //imu.reset();
   }
 
   //this one moves the bot until the angle is 0
@@ -641,19 +713,19 @@ public class Robot extends TimedRobot {
       double rotationSpeed = .5; //idk about best speed, Trial an Error sort of thing?
       //if angle - pi is positive, it means the closest path to orientation is clockwise
       //else it is counter clockwise
-      double angleFromZero = imu.getAngle() - 180;
-      //double angleFromZero = botAngle - Math.PI;
+      //double angleFromZero = imu.getAngle() - 180;
+      double angleFromZero = botAngle - Math.PI;
 
       //pato, ik you dont know what this means, but it just makes the absolute distance positive
       double absoluteAngleFromZero = angleFromZero > 0 ? angleFromZero : -angleFromZero; 
-      double percentDistance = absoluteAngleFromZero / 180;
-      //double percentDistance = absoluteAngleFromZero / Math.PI;
+      //double percentDistance = absoluteAngleFromZero / 180;
+      double percentDistance = absoluteAngleFromZero / Math.PI;
       
       //the weighted distance is a multiplier to the turning speed, it should be turning slower as it gets closer to the center
       //so that it doesn't overshoot, but still can turn fast initially
       //it starts the same as the percent distance
-      double weightedAngle = absoluteAngleFromZero / 180;
-      //double weightedAngle = absoluteAngleFromZero / Math.PI;
+      //double weightedAngle = absoluteAngleFromZero / 180;
+      double weightedAngle = absoluteAngleFromZero / Math.PI;
 
       // anything over 50% is full turning speed (will be doubled from .5 to 1.0 soon)
       if (weightedAngle > .5)
@@ -668,10 +740,11 @@ public class Robot extends TimedRobot {
 
       //if within 4% of the center, it is fine
       if (percentDistance < .02){
+        stopMotors();
         return;
       }//turn clockwise if closer from left angle 
-      else if (imu.getAngle() - 180 > 0){ 
-      //else if (botAngle - Math.PI > 0){ 
+      //else if (imu.getAngle() - 180 > 0){ 
+      else if (botAngle - Math.PI > 0){ 
         //the weighted angle makes it move slower as it gets closer
         //leftMotors.set(rotationSpeed * weightedAngle);
         //rightMotors.set(-rotationSpeed * weightedAngle);
@@ -699,11 +772,11 @@ public class Robot extends TimedRobot {
     //careful with the while true here
     while (true) {
       //this will also follow a similar method to the resetOrientaton, just that it used values instead of percents
-      double movementSpeed = 1; //change with trial and error
-      double distanceFromX = targetX - imu.getMagX(); //imu.getGyroInstantX();
-      double distanceFromY = targetY - imu.getMagX(); //imu.getGyroInstantY();
-      //double distanceFromX = targetX - botX;
-      //double distanceFromY = targetY - botY;
+      double movementSpeed = .5; //change with trial and error
+      //double distanceFromX = targetX - imu.getMagX(); //imu.getGyroInstantX();
+      //double distanceFromY = targetY - imu.getMagX(); //imu.getGyroInstantY();
+      double distanceFromX = targetX - botX;
+      double distanceFromY = targetY - botY;
 
       double weightedDistanceX = (distanceFromX > 20) ? 1 : distanceFromX / 20; //20 can be changed
       double weightedDistanceY = (distanceFromY > 20) ? 1 : distanceFromY / 20; //percent distance from 20 units
@@ -713,7 +786,7 @@ public class Robot extends TimedRobot {
 
       if (distanceFromX > 2 || distanceFromY > 2){
         //frontMotors.set(speedX);
-
+        //TODO maybe add a max speed?
         swerveMotor1.set(speedX);
         swerveMotor2.set(speedX);
         
@@ -731,12 +804,28 @@ public class Robot extends TimedRobot {
         //^ but would that be better found in the autonomous periodic Function?
         //TODO the back motors of Right and Left might need to have a slightly faster speed to compensate
         //for their Angle. this a T&E thing
-        //calculateGridSwerve(speedX, speedY);
+        calculateGridSwerve(speedX, speedY);
+
       } else {
+        stopMotors();
         return; //ends the function as it is already close enough
       }
-
     }
-    
+  }
+
+  public void stopMotors(){
+    backLeftMotor.set(ControlMode.PercentOutput, 0);
+    frontLeftMotor.set(ControlMode.PercentOutput, 0);
+    backRightMotor.set(ControlMode.PercentOutput, 0);
+    frontRightMotor.set(ControlMode.PercentOutput, 0);
+
+    swerveMotor1.set(0);
+    swerveMotor2.set(0);
+  }
+
+  private void stopOther(){
+    shootMotors.set(0);
+    liftMotor1.set(ControlMode.PercentOutput,0);
+    liftMotor2.set(ControlMode.PercentOutput,0);
   }
 }
